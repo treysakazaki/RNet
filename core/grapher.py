@@ -1,21 +1,15 @@
-'''
-grapher.py
-
-Author: Kota Sakazaki
-Date: March 9, 2022
-'''
 
 from collections import defaultdict
-from functools import partial
-from typing import List, Union
 from matplotlib import pyplot as plt
 from matplotlib.offsetbox import AnchoredText
 import numpy as np
+import os
 import pandas as pd
 
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
+    QgsProject,
     QgsTask,
     QgsVectorLayer
     )
@@ -162,7 +156,7 @@ class OsmLoader(QgsTask):
     ident = 0
     
     def __init__(self, src: str):
-        super().__init__(f'Loading OSM data')
+        super().__init__('Loading OSM data')
         self.src = src
         self.osm_ids = np.array([], dtype=int)
         self.vertices = pd.DataFrame(columns=['x', 'y'])
@@ -349,7 +343,7 @@ class AddOsmData(QgsTask):
                 for n in G.neighbors[o]:
                     if (o, n) in history:
                         continue
-                    vseq, length = [o, n], 0.0
+                    vseq = [o, n]
                     p, q = o, n
                     while q not in nodes:
                         x = list(G.neighbors[q].difference({p}))[0]
