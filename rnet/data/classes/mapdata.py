@@ -38,13 +38,16 @@ class MapData:
             include (:obj:`List[str]`, optional): List of tags to include.
             exclude (:obj:`List[str]`, optional): List of tags to exclude.
         
-        Warning:
+        Note:
             If required, either the `include` or `exclude` keyword should be
             given, not both.
         '''
         vertices, links = maploader.from_osm(path_to_osm)
-        if len(kwargs) > 0:
-            links = filter_connections(links, **kwargs)
+        if len(kwargs) == 1:
+            if 'include' in kwargs:
+                links = filter_connections(links, 'include', kwargs['include'])
+            elif 'exclude' in kwargs:
+                links = filter_connections(links, 'exclude', kwargs['exclude'])
             vertices = clean_points(vertices, links)
             vertices, links = reindex_points(vertices, links)
         return cls(vertices, links, crs=4326)
