@@ -14,13 +14,12 @@ class MapData:
     Parameters:
         vertices (pandas.DataFrame): Frame containing vertex data.
         links (pandas.DataFrame): Frame containing link data.
-    
-    Keyword arguments:
         crs (int): EPSG code of the CRS in which vertex coordinates are
             represented.
     '''
     
-    def __init__(self, vertices, links, *, crs):
+    def __init__(self, vertices, links, crs):
+        self.crs = crs
         self.vertices = vertices
         self.links = links
         self.vertex_count = len(vertices)
@@ -40,7 +39,8 @@ class MapData:
         
         Note:
             If required, either the `include` or `exclude` keyword should be
-            given, not both.
+            given, not both. In the case that both are given, `include` takes
+            precedence and `exclude` is ignored.
         '''
         vertices, links = maploader.from_osm(path_to_osm)
         if len(kwargs) == 1:
@@ -50,4 +50,4 @@ class MapData:
                 links = filter_connections(links, 'exclude', kwargs['exclude'])
             vertices = clean_points(vertices, links)
             vertices, links = reindex_points(vertices, links)
-        return cls(vertices, links, crs=4326)
+        return cls(vertices, links, 4326)
