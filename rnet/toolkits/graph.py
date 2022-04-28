@@ -4,33 +4,25 @@ import numpy as np
 import pandas as pd
 
 
-def filter_connections(connections, **kwargs):
+def filter_connections(connections, action, tags):
     '''
     Filters connections based on their tag.
     
-    Keyword arguments:
-        include (:obj:`List[str]`, optional): List of tags to include.
-        exclude (:obj:`List[str]`, optional): List of tags to exclude.
+    Parameters:
+        connections (pandas.DataFrame): Frame containing connection data.
+        action ('include' or 'exclude'): Whether to include or exclude the
+            specified tags.
+        tags (List[str]): List of tags to include or exclude.
     
     Returns:
-        pandas.DataFrame: `connections` frame reduced based on `include` or
-        `exclude` parameter.
-    
-    Raises:
-        KeyError: If an incorrect keyword argument is given.
-        TypeError: If an incorrect number of keyword arguments is given.
+        pandas.DataFrame: `connections` frame with specified tags included or
+        excluded.
     '''
-    if len(kwargs) == 1:
-        tags = connections['tag'].to_numpy()
-        if 'include' in kwargs:
-            mask = np.isin(tags, kwargs['include'])
-        elif 'exclude' in kwargs:
-            mask = np.invert(np.isin(tags, kwargs['exclude']))
-        else:
-            raise KeyError("expected keyword 'include' or 'exclude'")
-        return connections.loc[mask]
-    else:
-        raise TypeError("expected keyword 'include' or 'exclude'")
+    if action == 'include':
+        mask = np.isin(connections['tag'].to_numpy(), tags)
+    elif action == 'exclude':
+        mask = np.invert(np.isin(connections['tag'].to_numpy(), tags))
+    return connections.loc[mask]
 
 
 def clean_points(points, connections):
