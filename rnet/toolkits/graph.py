@@ -1,4 +1,5 @@
 
+from collections import defaultdict
 import numpy as np
 import pandas as pd
 
@@ -79,3 +80,47 @@ def reindex_points(points, connections, start=0):
     
     return points, connections
 
+
+def get_neighbors(connections, directed):
+    '''
+    Returns dictionary mapping point ID to set of neighboring point IDs.
+    
+    Parameters:
+        connections (pandas.DataFrame): Frame containing connections.
+        directed (bool): If True, then :math:`(i, j)` pairs in are interpreted
+            as ordered pairs.
+    
+    Returns:
+        Dict[int, Set[int]]: Mapping from point ID to set of neighboring point
+        IDs.
+    '''
+    neighbors = defaultdict(set)
+    if directed:
+        for (i, j) in connections.index.to_list():
+            neighbors[i].add(j)
+    else:
+        for (i, j) in connections.index.to_list():
+            neighbors[i].add(j)
+            neighbors[j].add(i)
+    return dict(neighbors)
+
+
+def extract_nodes(vertices, links, directed):
+    '''
+    Extracts nodes from a set of vertices. Nodes are the subset of vertices
+    that have exactly one or more than two neighbors.
+    
+    Parameters:
+        vertices (pandas.DataFrame): Frame containing vertex data.
+        links (pandas.DataFrame): Frame containing link data.
+        directed (bool): If True, then :math:`(i, j)` pairs in the links frame
+            are interpreted as ordered pairs.
+    
+    Returns:
+        pandas.DataFrame: `vertices` frame containing only the points with
+        exactly one or more than two neighbors.
+    '''
+    neighbors = get_neighbors(links, directed)
+    nodes = set(i for i, n in neighbors.items() if len(n) != 2)
+    mask = np.isin(vertices.index, list(nodes), assume_unique=True)
+    return vertices.loc[mask]
