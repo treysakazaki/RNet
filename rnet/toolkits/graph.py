@@ -73,6 +73,33 @@ def reindex_points(points, connections, start=0):
     return points, connections
 
 
+def compute_lengths(vertices, links, dims):
+    '''
+    Computes the length of each link and inserts or updates the 'length' column.
+    
+    Parameters:
+        vertices (pandas.DataFrame): Frame containing vertex data.
+        links (pandas.DataFrame): Frame containing link data.
+        dims (int): 2 or 3. If 2, then `vertices` must contain the columns 'x'
+            and 'y'. If 3, then `vertices` must also contain the column `z`.
+    
+    Returns:
+        pandas.DataFrame: `links` frame with 'length' column inserted or
+        updated.
+    '''
+    ijpairs = links.index.to_frame().to_numpy()
+    if dims == 2:
+        cols = ['x', 'y']
+        c = vertices[cols].loc[ijpairs.flatten()].to_numpy().reshape(-1,4)
+        d = np.column_stack([c[:,2]-c[:,0], c[:,3]-c[:,1]])
+    elif dims == 3:
+        cols = ['x', 'y', 'z']
+        c = vertices[cols].loc[ijpairs.flatten()].to_numpy().reshape(-1,6)
+        d = np.column_stack([c[:,3]-c[:,0], c[:,4]-c[:,1], c[:,5]-c[:,2]])
+    links['length'] = np.linalg.norm(d, axis=1)
+    return links
+
+
 def get_neighbors(connections, directed):
     '''
     Returns dictionary mapping point ID to set of neighboring point IDs.
@@ -116,3 +143,60 @@ def extract_nodes(vertices, links, directed):
     nodes = set(i for i, n in neighbors.items() if len(n) != 2)
     mask = np.isin(vertices.index, list(nodes), assume_unique=True)
     return vertices.loc[mask]
+
+
+def extract_edges(links, nodes, directed):
+    '''
+    Extracts edges from a set of links. Edges are constructed by chaining one
+    or more links together such that the endpoints are both nodes.
+    
+    Parameters:
+        links (pandas.DataFrame): Frame containing edge data.
+        nodes (pandas.DataFrame): Frame containing node data.
+        directed (bool): If True, then :math:`(i, j)` pairs in the links frame
+            are interpreted as ordered pairs. The resulting set of edges will
+            also be directed.
+    
+    Returns:
+        pandas.DataFrame: Frame containing edge data.
+    '''
+    neighbors = get_neighbors(links, directed)
+    nodes = set(nodes.index)
+    
+    ijpairs = []
+    records = []
+    
+    history = set()
+    unvisited = nodes.copy()
+    
+    while True:
+        try:
+            leaves = {unvisited.pop()}
+        except KeyError:
+            break
+        else:
+            while len(leaves) > 0:
+                new_leaves = set()
+                for o in leaves:
+                    for n in neighbors[o]:
+                        if (o, n) in history:
+                            continue
+                        vseq = [o, n]
+                        p, q = o, n
+                        while q not in nodes:
+                            x = neighbors[q].difference({p}).pop()
+                            vseq.append(x)
+                            p, q = q, x
+                        i, j = vseq[0], vseq[-1]
+                        new_leaves.add(j)
+                        history.add((q, p))
+                        if i > j:
+                            i, j = j, i
+                            vseq.reverse()
+                        ijpairs.append((i, j))
+                        records.append((tuple(vseq), ))
+                unvisited.difference_update(leaves)
+                leaves = new_leaves.intersection(unvisited)
+    
+    index = pd.MultiIndex.from_tuples(ijpairs, names=['i', 'j'])
+    return pd.DataFrame.from_records(records, index=index, columns=['vseq'])

@@ -34,7 +34,7 @@ def from_osm(path_to_osm):
                            for k, feat in enumerate(layer)])
     
     # Construct frames
-    vertices = pd.DataFrame(coords, columns=['lon', 'lat'])
+    vertices = pd.DataFrame(coords, columns=['x', 'y'])
     links = pd.DataFrame(
         tags, index=pd.MultiIndex.from_arrays(ijpairs.T, names=['i', 'j']),
         columns=['tag'])
