@@ -1,4 +1,5 @@
 
+from itertools import count
 from rnet.data.loaders import maploader
 from rnet.toolkits.graph import (
     filter_connections,
@@ -18,12 +19,21 @@ class MapData:
             represented.
     '''
     
-    def __init__(self, vertices, links, crs):
-        self.crs = crs
+    ident = count(0)
+    
+    def __init__(self, vertices, links, crs, name):
         self.vertices = vertices
         self.links = links
         self.vertex_count = len(vertices)
         self.link_count = len(links)
+        self.crs = crs
+        self.name = name
+    
+    def __repr__(self):
+        return f"<MapData: '{self.name}' (EPSG:{self.crs})>"
+    
+    def render(self):
+        pass
     
     @classmethod
     def from_osm(cls, path_to_osm, **kwargs):
@@ -36,6 +46,7 @@ class MapData:
         Keyword arguments:
             include (:obj:`List[str]`, optional): List of tags to include.
             exclude (:obj:`List[str]`, optional): List of tags to exclude.
+            name (:obj:`str`, optional): Data source name.
         
         Note:
             If required, either the `include` or `exclude` keyword should be
@@ -43,14 +54,17 @@ class MapData:
             precedence and `exclude` is ignored.
         '''
         vertices, links = maploader.from_osm(path_to_osm)
-        if len(kwargs) == 1:
+        if len(kwargs) > 0:
             if 'include' in kwargs:
                 links = filter_connections(links, 'include', kwargs['include'])
             elif 'exclude' in kwargs:
                 links = filter_connections(links, 'exclude', kwargs['exclude'])
             vertices = clean_points(vertices, links)
             vertices, links = reindex_points(vertices, links)
-        return cls(vertices, links, 4326)
+        name = kwargs.get('name')
+        if name is None:
+            name = '_'.join([cls.__name__, str(next(cls.ident))])
+        return cls(vertices, links, 4326, name)
 
 
 class MapDataContainer:
