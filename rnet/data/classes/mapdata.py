@@ -51,3 +51,42 @@ class MapData:
             vertices = clean_points(vertices, links)
             vertices, links = reindex_points(vertices, links)
         return cls(vertices, links, 4326)
+
+
+class MapDataContainer:
+    '''
+    Container for map data.
+    '''
+    
+    def __init__(self):
+        self.data = []
+    
+    def add(self, *args):
+        '''
+        Adds map data to the container.
+        
+        Parameters:
+            source (:obj:`str`, :obj:`Tuple[str, str, int]` or :obj:`MapData`):
+                Either (1) path to OSM file, (2) 3-tuple containing paths to CSV
+                files containing vertex and link data, followed by an EPSG code,
+                or (3) ``MapData`` instance.
+        '''
+        if len(args) == 1:
+            if type(args[0]) is str:
+                self.data.append(MapData.from_osm(args[0]))
+            elif isinstance(args[0], MapData):
+                self.data.append(args[0])
+            else:
+                return
+        elif len(args) == 3:
+            try:
+                assert type(args[0]) is str
+                assert type(args[1]) is str
+                assert type(args[2]) is int
+            except AssertionError:
+                return
+            else:
+                pass
+        else:
+            return
+
