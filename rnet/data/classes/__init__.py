@@ -1,3 +1,3 @@
 
-from rnet.data.classes.mapdata import MapData
+from rnet.data.classes.mapdata import MapData, MapDataContainer
 
