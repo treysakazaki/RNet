@@ -2,7 +2,7 @@
 from itertools import count
 from networkx import Graph
 import os
-from rnet.data.classes import MapDataContainer
+from rnet.data import MapDataContainer
 from rnet.toolkits.graph import (
     compute_lengths,
     extract_nodes,

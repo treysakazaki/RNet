@@ -1,15 +1,37 @@
 
+from abc import ABC, abstractmethod
 from itertools import count
 import os
-from rnet.data.classes.bases import Data, DataContainer
-from rnet.data.loaders import maploader
+from rnet.data.loaders import MapLoader
 from rnet.toolkits.coords import transform2d
 from rnet.toolkits.graph import (
     filter_connections,
     clean_points,
-    reindex_points,
-    concatenate
+    reindex_points
     )
+
+
+class Data(ABC):
+    '''
+    Base class for data.
+    '''
+    
+    __slots__ = ['crs', 'name']
+    
+    def __init__(self, crs, name):
+        self.crs = crs
+        self.name = name
+    
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: '{self.name}' (EPSG:{self.crs})>"
+    
+    @abstractmethod
+    def dump(self):
+        print(f'name: {self.name}', f'crs: EPSG:{self.crs}', sep='\n')
+    
+    @abstractmethod
+    def render(self):
+        pass
 
 
 class MapData(Data):
@@ -101,7 +123,7 @@ class MapData(Data):
             given, not both. In the case that both are given, `include` takes
             precedence and `exclude` is ignored.
         '''
-        vertices, links = maploader.from_osm(path_to_osm)
+        vertices, links = MapLoader.from_osm(path_to_osm)
         if 'include' in kwargs:
             links = filter_connections(links, 'include', kwargs['include'])
             vertices = clean_points(vertices, links)
@@ -117,70 +139,4 @@ class MapData(Data):
     def from_csvs(cls, path_to_dir, crs, **kwargs):
         pass
 
-
-class MapDataContainer(DataContainer):
-    '''
-    Container for map data.
-    '''
-    
-    __slots__ = []
-    ident = count(0)
-    
-    def __init__(self, name=None):
-        super().__init__(name)
-    
-    def add(self, source, crs=None):
-        '''
-        Adds map data to the container.
-        
-        Parameters:
-            source (:obj:`str` or :obj:`MapData`): Either (1) path to OSM file,
-                (2) path to directory containing ``vertices.csv`` and
-                ``links.csv`` pair, or (3) ``MapData`` instance.
-            crs (:obj:`int`, optional): EPSG code of the CRS in which vertex
-                coordinates are represented. Required only if `source` is of
-                type (2).
-        '''
-        if type(source) is str:
-            if os.path.isfile(source):
-                self.data.append(MapData.from_osm(source))
-            elif os.path.isdir(source):
-                assert crs is not None
-                self.data.append(MapData.from_csvs(source, crs))
-            else:
-                return
-        elif isinstance(source, MapData):
-            self.data.append(source)
-        else:
-            return
-    
-    def out(self, *, assume_unique=False, **kwargs):
-        '''
-        Exports concatenated vertex and link data frames.
-        
-        Keyword arguments:
-            assume_unique (:obj:`bool`, optional): 
-            include (:obj:`List[str]`, optional): List of tags to include.
-            exclude (:obj:`List[str]`, optional): List of tags to exclude.
-            crs (:obj:`int`, optional): EPSG code of CRS for vertex coordinates.
-                If different from ``.crs``, then vertex coordinates are
-                transformed to the specified `crs`.
-        
-        Returns:
-            Tuple[pandas.DataFrame, pandas.DataFrame]: 2-tuple containing
-            ``.vertices`` and ``.links`` frames with links filtered and vertices
-            transformed.
-        
-        Note:
-            If required, either the `include` or `exclude` keyword should be
-            given, not both. In the case that both are given, `include` takes
-            precedence and `exclude` is ignored.
-        '''
-        frames = [d.out(**kwargs) for d in self.data]
-        vertices, links = concatenate(*frames)
-        if assume_unique:
-            pass
-        else:
-            pass
-        return vertices, links
 
