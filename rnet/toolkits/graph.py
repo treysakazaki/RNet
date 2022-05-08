@@ -200,3 +200,29 @@ def extract_edges(links, nodes, directed):
     
     index = pd.MultiIndex.from_tuples(ijpairs, names=['i', 'j'])
     return pd.DataFrame.from_records(records, index=index, columns=['vseq'])
+
+
+def concatenate(*frames):
+    '''
+    Parameters:
+        *frames (Tuple[pandas.DataFrame, pandas.DataFrame]): Frames containing
+            points and connections data.
+    '''
+    points = []
+    connections = []
+    tags = []
+    PCOUNT = 0
+    for dfpoints, dfconnections in frames:
+        coords = dfpoints.values.tolist()
+        ijpairs = dfconnections.index.to_frame().to_numpy()
+        ijpairs += PCOUNT
+        ijpairs = ijpairs.tolist()
+        points.extend(coords)
+        connections.extend(ijpairs)
+        tags.extend(dfconnections.values.tolist())
+        PCOUNT += len(coords)
+    points = pd.DataFrame.from_records(points, columns=['x', 'y'])
+    connections = pd.DataFrame.from_records(
+        tags, index=pd.MultiIndex.from_tuples(connections, names=['i', 'j']),
+        columns=['tag'])
+    return points, connections

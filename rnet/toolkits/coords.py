@@ -3,7 +3,7 @@ import numpy as np
 from osgeo import osr
 
 
-def transform_coords2d(coords, srccrs, dstcrs):
+def transform2d(coords, srccrs, dstcrs):
     '''
     Transforms two-dimensional coordinates.
     
