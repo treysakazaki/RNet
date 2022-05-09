@@ -1,14 +1,14 @@
-
 from itertools import count
 from networkx import Graph
 import os
-from rnet.data import MapDataContainer
+from rnet.data import MapDataContainer, ElevationDataContainer
 from rnet.toolkits.graph import (
     compute_lengths,
     extract_nodes,
     extract_edges,
     reindex_points
     )
+from rnet.utils.taskmanager import task
 
 
 class Model:
@@ -21,7 +21,8 @@ class Model:
         if name is None:
             name = '_'.join(['Model', str(next(self.ident))])
         self.name = name
-        self.sources = {'maps': MapDataContainer()}
+        self.sources = {'maps': MapDataContainer(),
+                        'elevations': ElevationDataContainer()}
         self.built = False
     
     def __repr__(self):
@@ -33,15 +34,37 @@ class Model:
                 ext = os.path.splitext(source)[1]
                 if ext == '.osm':
                     self.sources['maps'].add(source)
+                elif ext == '.tif':
+                    self.sources['elevations'].add(source)
+            elif os.path.isdir(source):
+                pass
     
-    def build(self, **kwargs):
-        crs = kwargs.setdefault('crs', 4326)
+    @task
+    def build(self, *, crs=4326, include='all', exclude=None, r=5e-4, p=2):
+        '''
+        Keyword arguments:
+            crs (:obj:`int`, optional): EPSG code for node coordinates. Default:
+                4326.
+            include ('all' or :obj:`List[str]`, optional): List of tags to
+                include. If 'all', all tags are included. Default: 'all'.
+            exclude (:obj:`List[str]`, optional): List of tags to exclude. If
+                None, no tags are excluded. Default: None.
+            r (:obj:`float`, optional): Radius for nearest neighbor search in
+                IDW interpolation. Default: 0.0005.
+            p (:obj:`int`, optional): Power setting for IDW interpolation.
+                Default: 2.
+        '''
         if self.sources['maps'].source_count == 0:
             return
         # Retrieve vertices and links from map data
-        vertices, links = self.sources['maps'].out(**kwargs)
+        md = self.sources['maps'].out(crs=crs, include=include, exclude=exclude)
+        vertices, links = md.vertices, md.links
+        # Compute elevations
+        if self.sources['elevations'].source_count > 0:
+            ed = self.sources['elevations'].out(crs=crs)
+            vertices['z'] = ed.get_elevs(vertices.to_numpy(), r=r, p=p)
         # Compute link lengths
-        links = compute_lengths(vertices, links, 2)
+        links = compute_lengths(vertices, links)
         # Extract nodes and edges
         nodes = extract_nodes(vertices, links, False)
         edges = extract_edges(links, nodes, False)

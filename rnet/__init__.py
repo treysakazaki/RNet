@@ -1,4 +1,2 @@
-
-
-from rnet.data import MapData, MapDataContainer
+from rnet.data import *
 from rnet.models import Model

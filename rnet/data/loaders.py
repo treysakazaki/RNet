@@ -1,4 +1,3 @@
-
 import numpy as np
 from osgeo import gdal, ogr
 import pandas as pd

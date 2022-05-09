@@ -1,4 +1,3 @@
-
 from collections import defaultdict
 import numpy as np
 import pandas as pd
@@ -73,29 +72,27 @@ def reindex_points(points, connections, start=0):
     return points, connections
 
 
-def compute_lengths(vertices, links, dims):
+def compute_lengths(vertices, links):
     '''
     Computes the length of each link and inserts or updates the 'length' column.
     
     Parameters:
         vertices (pandas.DataFrame): Frame containing vertex data.
         links (pandas.DataFrame): Frame containing link data.
-        dims (int): 2 or 3. If 2, then `vertices` must contain the columns 'x'
-            and 'y'. If 3, then `vertices` must also contain the column `z`.
     
     Returns:
         pandas.DataFrame: `links` frame with 'length' column inserted or
         updated.
     '''
     ijpairs = links.index.to_frame().to_numpy()
-    if dims == 2:
-        cols = ['x', 'y']
-        c = vertices[cols].loc[ijpairs.flatten()].to_numpy().reshape(-1,4)
-        d = np.column_stack([c[:,2]-c[:,0], c[:,3]-c[:,1]])
-    elif dims == 3:
+    try:
         cols = ['x', 'y', 'z']
         c = vertices[cols].loc[ijpairs.flatten()].to_numpy().reshape(-1,6)
         d = np.column_stack([c[:,3]-c[:,0], c[:,4]-c[:,1], c[:,5]-c[:,2]])
+    except KeyError:
+        cols = ['x', 'y']
+        c = vertices[cols].loc[ijpairs.flatten()].to_numpy().reshape(-1,4)
+        d = np.column_stack([c[:,2]-c[:,0], c[:,3]-c[:,1]])
     links['length'] = np.linalg.norm(d, axis=1)
     return links
 
