@@ -1,6 +1,8 @@
+arcgis
+matplotlib
+networkx
 numpy
 pandas
-matplotlib
+PyQt5
 scipy
-networkx
-arcgis
+GDAL-3.4.3-cp38-cp38-win_amd64.whl
