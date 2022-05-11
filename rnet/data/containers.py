@@ -90,6 +90,10 @@ class MapDataContainer(DataContainer):
         
         Returns:
             MapData: MapData instance.
+        
+        See also:
+            :class:`MapData`
+                Class for representing map data.
         '''
         frames = [source.out(crs=crs, include=include, exclude=exclude)
                   for source in self.data]
@@ -153,6 +157,10 @@ class ElevationDataContainer(DataContainer):
         
         Returns:
             ElevationData: ElevationData instance.
+        
+        See also:
+            :class:`ElevationData`
+                Class for representing elevation data.
         '''
         frames = [source.out(crs=crs) for source in self.data]
         data = concatenate_points(*frames)
