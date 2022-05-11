@@ -1,2 +1,2 @@
 # RNet
-Tools for modeling and analyzing road networks in QGIS.
+Tools for modeling and analyzing road networks.
