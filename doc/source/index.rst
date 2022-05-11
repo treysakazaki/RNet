@@ -10,11 +10,12 @@ Welcome to rnet's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+
 Data
 ====
 
-Maps
-----
+Classes
+-------
 
 The MapData Class
 ^^^^^^^^^^^^^^^^^
@@ -23,9 +24,28 @@ The MapData Class
    :show-inheritance:
    :members:
 
+
+The ElevationData Class
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: rnet.ElevationData
+   :show-inheritance:
+   :members:
+
+
+Containers
+----------
+
 The MapDataContainer Class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: rnet.MapDataContainer
+   :show-inheritance:
+   :members:
+
+The ElevaitonDataContainer Class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: rnet.ElevationDataContainer
    :show-inheritance:
    :members:
