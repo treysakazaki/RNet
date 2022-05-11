@@ -3,6 +3,7 @@ import os
 from rnet.data.loaders import MapLoader, ElevationLoader
 from rnet.toolkits.coords import (
     create_tree,
+    get_bounds2d,
     get_bounds3d,
     get_elev,
     get_elevs,
@@ -61,6 +62,16 @@ class MapData(Data):
         self.link_count = len(links)
         super().__init__(crs, name)
     
+    def bounds(self):
+        '''
+        Return the coordinates that define the bounding box for the set of
+        vertices.
+        
+        Returns:
+            Tuple[float]:
+        '''
+        return get_bounds2d(self.vertices.to_numpy())
+    
     def dump(self):
         super().dump()
         print(f'vertex_count: {self.vertex_count:,}',
@@ -68,7 +79,7 @@ class MapData(Data):
     
     def out(self, *, crs=None, include='all', exclude=None):
         '''
-        Exports vertex and link data frames.
+        Export vertex and link data frames.
         
         Keyword arguments:
             crs (:obj:`int`, optional): EPSG code of CRS for vertex coordinates.
@@ -85,9 +96,7 @@ class MapData(Data):
             transformed.
         
         Note:
-            If required, either the `include` or `exclude` keyword should be
-            specified, not both. In the case that both are given, `include`
-            takes precedence and `exclude` is ignored.
+            The keyword `include` takes precedence over `exclude`.
         '''
         # Copy frames
         vertices = self.vertices.copy()
@@ -236,7 +245,7 @@ class ElevationData(Data):
         Returns:
             pandas.DataFrame: ``.df`` frame with coordinates transformed.
         '''
-        # Copy frames
+        # Copy frame
         df = self.df.copy()
         # Transform vertex coordinates
         if crs is None:
