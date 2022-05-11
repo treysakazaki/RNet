@@ -1,4 +1,6 @@
 __pycache__/
 doc/build/*
 !doc/build/rnet.pdf
-.ipynb_checkpoints
+.ipynb_checkpoints/
+RNet.egg-info/
+examples/data/*
