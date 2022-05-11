@@ -4,3 +4,4 @@ doc/build/*
 .ipynb_checkpoints/
 RNet.egg-info/
 examples/data/*
+build/*
