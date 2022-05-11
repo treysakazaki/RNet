@@ -4,16 +4,15 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from rnet.ui.progress import ProgressDialog
 
 
-DLG = ProgressDialog()
-
-
-def task(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        worker = Worker.create('No description')
-        worker.add('Description', func, *args, **kwargs)
-        run_task(worker)
-    return wrapper
+def task(description, show_dlg=True, progress=False):
+    def outer(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            worker = Worker.create()
+            worker.add(f'{description}...', func, *args, **kwargs)
+            run_task(worker, show_dlg, progress)
+        return inner
+    return outer
 
 
 class Worker(QObject):
@@ -24,9 +23,8 @@ class Worker(QObject):
     label = pyqtSignal(str)
     ident = count(0)
     
-    def __init__(self, description):
+    def __init__(self):
         super().__init__()
-        self.description = description
         self.queue = []
     
     def run(self):
@@ -46,30 +44,38 @@ class Worker(QObject):
         self.isCanceled = True
     
     @classmethod
-    def create(cls, description):
-        worker_name = f'{cls.__name__}_{str(next(cls.ident))}'
-        globals()[worker_name] = cls(description)
+    def create(cls):
+        worker_name = f'Worker_{str(next(cls.ident))}'
+        globals()[worker_name] = cls()
         return globals()[worker_name]
 
 
-def run_task(worker):
-    DLG.canceled.connect(worker.cancel)
-    DLG.show()
+def run_task(worker, show_dlg, progress):
+    if show_dlg:
+        DLG = ProgressDialog()
+        DLG.canceled.connect(worker.cancel)
+        if progress:
+            pass
+        else:
+            DLG.setMaximum(0)
+        DLG.show()
     
     global thread
     thread = QThread()
     worker.moveToThread(thread)
     
     thread.started.connect(worker.run)
-    #thread.started.connect(lambda: dlg.show())
     
-    worker.progress.connect(lambda v: DLG.setValue(v))
-    worker.label.connect(lambda s: DLG.setLabelText(s))
+    if show_dlg:
+        worker.progress.connect(lambda v: DLG.setValue(v))
+        worker.label.connect(lambda s: DLG.setLabelText(s))
     
     worker.finished.connect(thread.quit)
     worker.finished.connect(worker.deleteLater)
     thread.finished.connect(thread.deleteLater)
-    thread.finished.connect(lambda: DLG.close())
+    
+    if show_dlg:
+        thread.finished.connect(lambda: DLG.close())
     
     worker.canceled.connect(thread.quit)
     worker.canceled.connect(worker.deleteLater)

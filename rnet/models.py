@@ -28,6 +28,7 @@ class Model:
     def __repr__(self):
         return f"<Model '{self.name}' ({'' if self.built else 'un'}built)>"
     
+    @task('Adding source')
     def add(self, source):
         if type(source) is str:
             if os.path.isfile(source):
@@ -38,8 +39,9 @@ class Model:
                     self.sources['elevations'].add(source)
             elif os.path.isdir(source):
                 pass
+        self.built = False
     
-    @task
+    @task('Building model')
     def build(self, *, crs=4326, include='all', exclude=None, r=5e-4, p=2):
         '''
         Keyword arguments:
@@ -53,7 +55,11 @@ class Model:
                 IDW interpolation. Default: 0.0005.
             p (:obj:`int`, optional): Power setting for IDW interpolation.
                 Default: 2.
+        
+        Note:
+            The keyword `include` takes precedence over `exclude`.
         '''
+        self.built = False
         if self.sources['maps'].source_count == 0:
             return
         # Retrieve vertices and links from map data
