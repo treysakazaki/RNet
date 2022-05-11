@@ -1,6 +1,8 @@
 from itertools import count
-from networkx import Graph
 import os
+
+from networkx import Graph
+
 from rnet.data import MapDataContainer, ElevationDataContainer
 from rnet.toolkits.graph import (
     compute_lengths,

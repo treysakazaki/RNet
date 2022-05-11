@@ -1,7 +1,10 @@
 import numpy as np
-from osgeo import osr
 import pandas as pd
 from scipy.spatial import cKDTree
+try:
+    from osgeo import osr
+except:
+    pass
 
 
 def get_crs_info(crs):
