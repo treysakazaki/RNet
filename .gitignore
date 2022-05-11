@@ -1,3 +1,4 @@
 __pycache__/
 doc/build/*
 !doc/build/rnet.pdf
+.ipynb_checkpoints
