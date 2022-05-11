@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+osgeo
+scipy
+networkx
+qgis
+PyQt5
