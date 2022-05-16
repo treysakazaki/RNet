@@ -75,6 +75,9 @@ class ElevationLoader:
         
         Returns:
             pandas.DataFrame: Frame containing elevation data.
+        
+        Reference:
+            https://pcjericks.github.io/py-gdalogr-cookbook/raster_layers.html
         '''
         # Read source file
         resource = gdal.Open(path_to_tif)
@@ -85,10 +88,10 @@ class ElevationLoader:
         # Extract elevations
         band = resource.GetRasterBand(1).ReadAsArray()
         h, w = band.shape
-        x = np.tile(np.arange(x0, x0+w*dx, dx), h)
-        y = np.concatenate([np.full(w,y0+j*dy) for j in np.arange(h)])
-        z = band.flatten()
-        
-        # Construct frame
-        df = pd.DataFrame(np.column_stack([x,y,z]), columns=['x','y','z'])
-        return df
+        x = np.arange(x0, x0 + w*dx, dx)
+        y = np.arange(y0, y0 + h*dy, dy)
+        return x, y, band
+#        
+#        # Construct frame
+#        df = pd.DataFrame(np.column_stack([x,y,z]), columns=['x','y','z'])
+#        return df

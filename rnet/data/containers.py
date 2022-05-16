@@ -1,14 +1,24 @@
 from abc import ABC, abstractmethod
 from itertools import count
 import os
+
+import pandas as pd
+
+from rnet.exceptions import DuplicateSourceError
 from rnet.data.classes import MapData, ElevationData
 from rnet.toolkits.graph import concatenate
-from rnet.toolkits.coords import concatenate_points
 
 
 class DataContainer(ABC):
     '''
     Base class for data containers.
+    
+    Parameters:
+        name (str): Container name. If None, a name is generated automatically.
+    
+    Attributes:
+        name (str): Container name.
+        data (List[Data]): List of :class:`Data` instances.
     '''
     
     __slots__ = ['name', 'data']
@@ -39,6 +49,10 @@ class DataContainer(ABC):
 class MapDataContainer(DataContainer):
     '''
     Container for map data.
+    
+    Parameters:
+        name (:obj:`str`, optional): Container name. If None, a name is
+            generated automatically. Default: None.
     '''
     
     __slots__ = []
@@ -49,7 +63,7 @@ class MapDataContainer(DataContainer):
     
     def add(self, source, crs=None):
         '''
-        Adds map data to the container.
+        Add map data to the container.
         
         Parameters:
             source (:obj:`str` or :obj:`MapData`): Either (1) path to OSM file,
@@ -108,6 +122,10 @@ class MapDataContainer(DataContainer):
 class ElevationDataContainer(DataContainer):
     '''
     Container for elevation data.
+    
+    Parameters:
+        name (:obj:`str`, optional): Container name. If None, a name is
+            generated automatically. Default: None.
     '''
     
     __slots__ = []
@@ -152,7 +170,7 @@ class ElevationDataContainer(DataContainer):
                 sources are assumed to be unique. If False, data sources are
                 checked for uniqueness and only unique features are retained.
                 Default: False.
-            crs (:obj:`int`, optional): EPSG code of CRS for :math:`(x,y)`
+            crs (:obj:`int`, optional): EPSG code of CRS for :math:`(x, y)`
                 coordinates. Default: 4326.
         
         Returns:
@@ -162,11 +180,7 @@ class ElevationDataContainer(DataContainer):
             :class:`ElevationData`
                 Class for representing elevation data.
         '''
-        frames = [source.out(crs=crs) for source in self.data]
-        data = concatenate_points(*frames)
-        if assume_unique:
-            pass
-        else:
-            pass
-        return ElevationData(data, crs=crs, name='Concatenated')
+        df = pd.concat([source.out() for source in self.data], axis=1)
+        return ElevationData(df.columns.to_numpy(), df.index.to_numpy(),
+                             df.to_numpy(), crs=crs, name='Concatenated')
 

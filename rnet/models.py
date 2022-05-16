@@ -14,6 +14,24 @@ from rnet.utils.taskmanager import task
 
 
 class Model:
+    '''
+    Class for representing a road network model.
+    
+    Parameters:
+        name (:obj:`str`, optional): Model name. If None, a name is generated
+            automatically. Default: None.
+    
+    Attributes:
+        name (str): Model name.
+        sources (Dict[str, DataContainer]): Dictionary mapping source type to
+            data container.
+        built (bool): Whether the model has been built.
+        crs (int): EPSG code in which node coordinates are represented.
+        nodes (pandas.DataFrame): Data frame containing node data.
+        edges (pandas.DataFrame): Data frame containing edge data.
+        node_count (int): Number of nodes.
+        edge_count (int): Number of edges.
+    '''
     
     __slots__ = ['name', 'sources', 'built', 'crs', 'nodes', 'edges',
                  'node_count', 'edge_count']
@@ -30,8 +48,13 @@ class Model:
     def __repr__(self):
         return f"<Model '{self.name}' ({'' if self.built else 'un'}built)>"
     
-    @task('Adding source')
     def add(self, source):
+        '''
+        Add data from source to the model.
+        
+        Paramaters:
+            source (:obj:`str` or :obj:`Data`): 
+        '''
         if type(source) is str:
             if os.path.isfile(source):
                 ext = os.path.splitext(source)[1]
@@ -43,8 +66,8 @@ class Model:
                 pass
         self.built = False
     
-    @task('Building model')
-    def build(self, *, crs=4326, include='all', exclude=None, r=5e-4, p=2):
+    def build(self, *, crs=4326, include='all', exclude=None, r=5e-4, p=2,
+              verbose=True):
         '''
         Keyword arguments:
             crs (:obj:`int`, optional): EPSG code for node coordinates. Default:
@@ -86,11 +109,14 @@ class Model:
         self.built = True
     
     def dump(self):
+        '''
+        Print information about the model.
+        '''
         print(f'name: {self.name}')
         if self.built:
             print(f'crs: EPSG:{self.crs}', f'node_count: {self.node_count:,}',
                   f'edge_count: {self.edge_count:,}', sep='\n')
-
+    
     def to_graph(self):
         G = Graph()
         G.add_nodes_from(self.nodes.index.tolist())

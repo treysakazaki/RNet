@@ -43,7 +43,7 @@ The MapDataContainer Class
    :show-inheritance:
    :members:
 
-The ElevaitonDataContainer Class
+The ElevationDataContainer Class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: rnet.ElevationDataContainer

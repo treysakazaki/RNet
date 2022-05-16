@@ -1,6 +1,7 @@
 from functools import wraps
 from itertools import count
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from rnet.ui import dialogs
 from rnet.ui.progress import ProgressDialog
 
 
@@ -58,7 +59,7 @@ def run_task(worker, show_dlg, progress):
             pass
         else:
             DLG.setMaximum(0)
-        DLG.show()
+        dialogs.main(DLG)
     
     global thread
     thread = QThread()
@@ -82,13 +83,3 @@ def run_task(worker, show_dlg, progress):
     worker.canceled.connect(thread.deleteLater)
     
     thread.start()
-
-
-if __name__ == '__console__':
-    from time import sleep
-    
-    @task
-    def dummy(t=5):
-        print('start')
-        sleep(t)
-        print(f'slept for {t} secs')

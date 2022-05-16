@@ -1,3 +1,5 @@
+from itertools import product
+
 import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
@@ -111,27 +113,26 @@ def get_bounds3d(coords):
     return (xmin, ymin, zmin, xmax, ymax, zmax)
 
 
-def get_elev(data, tree, x, y, r, p):
+def get_elev(xdata, ydata, zdata, x, y, r, p):
     '''
-    Return elevation at a single point. The elevation is computed via
-    inverse distance weighting (IDW) interpolation.
+    Compute elevation at a single point via inverse distance weighting (IDW)
+    interpolation.
     
     Parameters:
-        data (pandas.DataFrame): Elevation data.
-        tree (scipy.spatial.cKDTree): :math:`k`-d tree for nearest-neighbor
-            query.
-        x (float): `x`-coordinate.
-        y (float): `y`-coordinate.
-        r (float): Radius for neighbor search.
+        xdata (:obj:`numpy.ndarray`, shape(nx,)): `x`-coordinates.
+        ydata (:obj:`numpy.ndarray`, shape(ny,)): `y`-coordinates.
+        zdata (:obj:`numpy.ndarray`, shape(nx,ny)): `z`-coordinates.
+        x (float): `x`-coordinate for elevation query.
+        y (float): `y`-coordinate for elevation query.
+        r (float): Radius for neighboring point search.
         p (int): Power setting for IDW interpolation.
     
     Returns:
-        float:
+        float: Elevation at point :math:`(x, y)`.
     '''
-    ngbrs = tree.query_ball_point((x, y), r)
-    xyz = data.iloc[ngbrs].to_numpy()
-    d = np.power(np.linalg.norm(xyz[:,0:2] - np.array([x, y]), axis=1), p)
-    z = xyz[:,2]
+    xi, yi, dists = indices_in_circle(xdata, ydata, x, y, r)
+    d = np.power(dists, p)
+    z = np.array([zdata[i,j] for (i,j) in np.column_stack([yi,xi])])
     return np.sum(z/d) / np.sum(1/d)
 
 
@@ -182,3 +183,29 @@ def transform2d(coords, source, destination):
     ct = osr.CoordinateTransformation(src, dst)
     transformed = np.array(ct.TransformPoints(coords[:,[1,0]]))
     return transformed[:,[1,0]]
+
+
+def indices_in_circle(xdata, ydata, x, y, r):
+    '''
+    Parameters:
+        xdata (:obj:`numpy.ndarray`, shape(nx,))
+        ydata (:obj:`numpy.ndarray`, shape(ny,))
+        x (float): `x`-coordinate.
+        y (float): `y`-coordinate.
+        r (float): Circle radius.
+    
+    Returns:
+        numpy.ndarray: Array with shape (N,2), where N is the number of points
+        located within the circle.
+    '''
+    # Filter by square
+    xindices = np.flatnonzero((x-r<=xdata) & (xdata<=x+r))
+    yindices = np.flatnonzero((y-r<=ydata) & (ydata<=y+r))
+    # Filter by circle
+    coords = np.array(list(product(ydata[yindices], xdata[xindices])))
+    coords[:,:] = coords[:,[1,0]]
+    dists = np.linalg.norm(coords - np.array([x,y]), axis=1)
+    indices = np.flatnonzero(dists <= r)
+    xi, yi = np.unravel_index(indices, (len(xindices),len(yindices)), 'F')
+    return xindices[xi], yindices[yi], dists[indices]
+

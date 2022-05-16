@@ -3,5 +3,6 @@ doc/build/*
 !doc/build/rnet.pdf
 .ipynb_checkpoints/
 RNet.egg-info/
-examples/data/*
+examples/samples/*
 build/*
+*.whl
