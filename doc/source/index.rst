@@ -11,41 +11,4 @@ Welcome to rnet's documentation!
    :caption: Contents:
 
 
-Data
-====
-
-Classes
--------
-
-The MapData Class
-^^^^^^^^^^^^^^^^^
-
-.. autoclass:: rnet.MapData
-   :show-inheritance:
-   :members:
-
-
-The ElevationData Class
-^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: rnet.ElevationData
-   :show-inheritance:
-   :members:
-
-
-Containers
-----------
-
-The MapDataContainer Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: rnet.MapDataContainer
-   :show-inheritance:
-   :members:
-
-The ElevationDataContainer Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: rnet.ElevationDataContainer
-   :show-inheritance:
-   :members:
+.. include:: data.rst
