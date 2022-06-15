@@ -1,6 +1,8 @@
 from functools import wraps
 from itertools import count
+
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
 from rnet.ui import dialogs
 from rnet.ui.progress import ProgressDialog
 
@@ -27,9 +29,9 @@ class Worker(QObject):
     def __init__(self):
         super().__init__()
         self.queue = []
+        self.isCanceled = False
     
     def run(self):
-        self.isCanceled = False
         for (label, func, args, kwargs) in self.queue:
             self.label.emit(label)
             func(*args, **kwargs)

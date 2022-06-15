@@ -12,6 +12,14 @@ class Error(Exception):
     pass
 
 
+class ConfigError(Error):
+    '''
+    Raised if layer utilities could not load configuration file.
+    '''
+    def __init__(self):
+        super().__init__("'config.ini' could not be loaded")
+
+
 class DuplicateSourceError(Error):
     '''
     Raised if a source that already exists is added to a DataContainer.
@@ -35,7 +43,8 @@ def require_qgis(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if QGIS_AVAILABLE:
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
         else:
             raise NotAvailableError(func.__name__, 'QGIS')
+        return result
     return wrapper

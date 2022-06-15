@@ -1,5 +1,8 @@
 from itertools import count
 import os
+import time
+from logging import getLogger
+log = getLogger(__name__)
 
 from networkx import Graph
 
@@ -55,6 +58,7 @@ class Model:
         Paramaters:
             source (:obj:`str` or :obj:`Data`): 
         '''
+        start = time.perf_counter()
         if type(source) is str:
             if os.path.isfile(source):
                 ext = os.path.splitext(source)[1]
@@ -65,9 +69,11 @@ class Model:
             elif os.path.isdir(source):
                 pass
         self.built = False
+        end = time.perf_counter()
+        log.debug('Finished adding source {!r} to {} in {:,.4f} s'.format(
+            os.path.basename(source), self.name, end-start))
     
-    def build(self, *, crs=4326, include='all', exclude=None, r=5e-4, p=2,
-              verbose=True):
+    def build(self, *, crs=4326, include='all', exclude=None, r=5e-4, p=2):
         '''
         Keyword arguments:
             crs (:obj:`int`, optional): EPSG code for node coordinates. Default:

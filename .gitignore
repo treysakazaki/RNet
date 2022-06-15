@@ -6,3 +6,4 @@ RNet.egg-info/
 examples/samples/*
 build/*
 *.whl
+*.log
