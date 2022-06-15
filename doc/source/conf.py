@@ -48,10 +48,10 @@ exclude_patterns = []
 latex_elements = {
     'papersize': 'letterpaper',
     'preamble': r'''
-        \usepackage[bitstream-charter]{mathdesign}
-        \usepackage[T1]{fontenc}
         \usepackage[defaultsans]{lato}
         \usepackage{inconsolata}
+        \usepackage[T1]{fontenc}
+        \usepackage[bitstream-charter]{mathdesign}
         \usepackage{gensymb}
     ''',
     }

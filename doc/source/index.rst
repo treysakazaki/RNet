@@ -10,5 +10,7 @@ Welcome to rnet's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
-.. include:: data.rst
+   model
+   data
+   toolkits
+   utilities
